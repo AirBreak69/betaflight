@@ -38,18 +38,19 @@
 #include "sensors/sensors.h"
 #include "sensors/barometer.h"
 
-static int32_t estimatedAltitude = 0;                // in cm
+static int32_t estimatedAltitude_cm = 0;                // in cm
 
 #define BARO_UPDATE_FREQUENCY_40HZ (1000 * 25)
 
 
 #if defined(USE_BARO) || defined(USE_GPS)
+static bool altitudeOffsetSet = false;
+
 void calculateEstimatedAltitude(timeUs_t currentTimeUs)
 {
     static timeUs_t previousTimeUs = 0;
     static int32_t baroAltOffset = 0;
     static int32_t gpsAltOffset = 0;
-    static bool altitudeOffsetSet = false;
 
     const uint32_t dTime = currentTimeUs - previousTimeUs;
     if (dTime < BARO_UPDATE_FREQUENCY_40HZ) {
@@ -76,7 +77,7 @@ void calculateEstimatedAltitude(timeUs_t currentTimeUs)
 
 #ifdef USE_GPS
 if (sensors(SENSOR_GPS) && STATE(GPS_FIX)) {
-    gpsAlt = gpsSol.llh.alt;
+    gpsAlt = gpsSol.llh.alt_cm;
     haveGpsAlt = true;
 
     if (gpsSol.hdop != 0) {
@@ -98,23 +99,27 @@ if (sensors(SENSOR_GPS) && STATE(GPS_FIX)) {
     gpsAlt -= gpsAltOffset;
     
     if (haveGpsAlt && haveBaroAlt) {
-        estimatedAltitude = gpsAlt * gpsTrust + baroAlt * (1 - gpsTrust);
+        estimatedAltitude_cm = gpsAlt * gpsTrust + baroAlt * (1 - gpsTrust);
     } else if (haveGpsAlt) {
-        estimatedAltitude = gpsAlt;
+        estimatedAltitude_cm = gpsAlt;
     } else if (haveBaroAlt) {
-        estimatedAltitude = baroAlt;
+        estimatedAltitude_cm = baroAlt;
     }
     
     DEBUG_SET(DEBUG_ALTITUDE, 0, (int32_t)(100 * gpsTrust));
     DEBUG_SET(DEBUG_ALTITUDE, 1, baroAlt);
     DEBUG_SET(DEBUG_ALTITUDE, 2, gpsAlt);
 }
+
+bool isAltitudeOffset(void)
+{
+    return altitudeOffsetSet;
+}
 #endif
 
-
-int32_t getEstimatedAltitude(void)
+int32_t getEstimatedAltitude_cm(void)
 {
-    return estimatedAltitude;
+    return estimatedAltitude_cm;
 }
 
 // This should be removed or fixed, but it would require changing a lot of other things to get rid of.

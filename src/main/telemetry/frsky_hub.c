@@ -269,14 +269,14 @@ static void sendLatLong(int32_t coord[2])
 #if defined(USE_GPS)
 static void sendGpsAltitude(void)
 {
-    uint16_t altitude = gpsSol.llh.alt;
+    int32_t altitude_cm = gpsSol.llh.alt_cm;
 
     // Send real GPS altitude only if it's reliable (there's a GPS fix)
     if (!STATE(GPS_FIX)) {
-        altitude = 0;
+        altitude_cm = 0;
     }
-    frSkyHubWriteFrame(ID_GPS_ALTIDUTE_BP, altitude);
-    frSkyHubWriteFrame(ID_GPS_ALTIDUTE_AP, 0);
+    frSkyHubWriteFrame(ID_GPS_ALTIDUTE_BP, altitude_cm / 100); // meters: integer part, eg. 123 from 123.45m
+    frSkyHubWriteFrame(ID_GPS_ALTIDUTE_AP, altitude_cm % 100); // meters: fractional part, eg. 45 from 123.45m
 }
 
 static void sendSatalliteSignalQualityAsTemperature2(uint8_t cycleNum)
@@ -542,16 +542,16 @@ void processFrSkyHubTelemetry(timeUs_t currentTimeUs)
 
         // Sent every 500ms
         if ((cycleNum % 4) == 0) {
-            int16_t altitude = ABS(getEstimatedAltitude());
+            int32_t altitude_cm = getEstimatedAltitude_cm();
 
             /* Allow 5s to boot correctly othervise send zero to prevent OpenTX
              * sensor lost notifications after warm boot. */
             if (frSkyHubLastCycleTime < DELAY_FOR_BARO_INITIALISATION_US) {
-                altitude = 0;
+                altitude_cm = 0;
             }
 
-            frSkyHubWriteFrame(ID_ALTITUDE_BP, altitude / 100);
-            frSkyHubWriteFrame(ID_ALTITUDE_AP, altitude % 100);
+            frSkyHubWriteFrame(ID_ALTITUDE_BP, altitude_cm / 100); // meters: integer part, eg. 123 from 123.45m
+            frSkyHubWriteFrame(ID_ALTITUDE_AP, altitude_cm % 100); // meters: fractional part, eg. 45 from 123.45m
         }
     }
 #endif

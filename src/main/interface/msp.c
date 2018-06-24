@@ -908,7 +908,7 @@ static bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 
     case MSP_ALTITUDE:
 #if defined(USE_BARO) || defined(USE_RANGEFINDER)
-        sbufWriteU32(dst, getEstimatedAltitude());
+        sbufWriteU32(dst, getEstimatedAltitude_cm());
 #else
         sbufWriteU32(dst, 0);
 #endif
