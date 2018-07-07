@@ -82,6 +82,7 @@
 #include "pg/vcd.h"
 #include "pg/usb.h"
 #include "pg/sdio.h"
+#include "pg/rcdevice.h"
 
 #include "rx/rx.h"
 #include "rx/cc2500_frsky_common.h"
@@ -684,7 +685,7 @@ const clivalue_t valueTable[] = {
     { "3d_deadband_low",            VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_RANGE_MIDDLE }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, deadband3d_low) },
     { "3d_deadband_high",           VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_RANGE_MIDDLE, PWM_PULSE_MAX }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, deadband3d_high) },
     { "3d_neutral",                 VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_PULSE_MAX }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, neutral3d) },
-    { "3d_deadband_throttle",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_PULSE_MAX }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, deadband3d_throttle) },
+    { "3d_deadband_throttle",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 100 }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, deadband3d_throttle) },
     { "3d_limit_low",               VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_RANGE_MIDDLE }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, limit3d_low) },
     { "3d_limit_high",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_RANGE_MIDDLE, PWM_PULSE_MAX }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, limit3d_high) },
     { "3d_switched_mode",           VAR_UINT8 | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, switched_mode3d) },
@@ -744,8 +745,8 @@ const clivalue_t valueTable[] = {
 #ifdef USE_GPS_RESCUE
     // PG_GPS_RESCUE
     { "gps_rescue_angle",           VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 200 }, PG_GPS_RESCUE, offsetof(gpsRescueConfig_t, angle) },
-    { "gps_rescue_initial_alt",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 20, 100 }, PG_GPS_RESCUE, offsetof(gpsRescueConfig_t, initialAltitude) },
-    { "gps_rescue_descent_dist",    VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 500 }, PG_GPS_RESCUE, offsetof(gpsRescueConfig_t, descentDistance) },
+    { "gps_rescue_initial_alt",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 20, 100 }, PG_GPS_RESCUE, offsetof(gpsRescueConfig_t, initialAltitudeM) },
+    { "gps_rescue_descent_dist",    VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 500 }, PG_GPS_RESCUE, offsetof(gpsRescueConfig_t, descentDistanceM) },
     { "gps_rescue_ground_speed",    VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 3000 }, PG_GPS_RESCUE, offsetof(gpsRescueConfig_t, rescueGroundspeed) },
     { "gps_rescue_throttle_p",      VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 500 }, PG_GPS_RESCUE, offsetof(gpsRescueConfig_t, throttleP) },
     { "gps_rescue_throttle_i",      VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 500 }, PG_GPS_RESCUE, offsetof(gpsRescueConfig_t, throttleI) },
@@ -1090,6 +1091,11 @@ const clivalue_t valueTable[] = {
 // PG_FLASH_CONFIG
 #ifdef USE_FLASH
     { "flash_spi_bus", VAR_UINT8 | MASTER_VALUE, .config.minmax = { 0, SPIDEV_COUNT }, PG_FLASH_CONFIG, offsetof(flashConfig_t, spiDevice) },
+#endif
+// RCDEVICE
+#ifdef USE_RCDEVICE
+    { "rcdevice_init_dev_attempts", VAR_UINT8 | MASTER_VALUE, .config.minmax = { 0, 10 }, PG_RCDEVICE_CONFIG, offsetof(rcdeviceConfig_t, initDeviceAttempts) },
+    { "rcdevice_init_dev_attempt_interval", VAR_UINT32 | MASTER_VALUE, .config.minmax = { 500, 5000 }, PG_RCDEVICE_CONFIG, offsetof(rcdeviceConfig_t, initDeviceAttemptInterval) }
 #endif
 };
 

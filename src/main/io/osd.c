@@ -270,9 +270,9 @@ static char osdGetTemperatureSymbolForSelectedUnit(void)
 }
 #endif
 
-static void osdFormatAltitudeString(char * buff, int32_t altitude_cm)
+static void osdFormatAltitudeString(char * buff, int32_t altitudeCm)
 {
-    const int alt = osdGetMetersToSelectedUnit(altitude_cm) / 10;
+    const int alt = osdGetMetersToSelectedUnit(altitudeCm) / 10;
 
     tfp_sprintf(buff, "%5d %c", alt, osdGetMetersToSelectedUnitSymbol());
     buff[5] = buff[4];
@@ -550,7 +550,7 @@ static bool osdDrawSingleElement(uint8_t item)
         break;
 
     case OSD_ALTITUDE:
-        osdFormatAltitudeString(buff, getEstimatedAltitude_cm());
+        osdFormatAltitudeString(buff, getEstimatedAltitudeCm());
         break;
 
     case OSD_ITEM_TIMER_1:
@@ -1107,7 +1107,7 @@ void osdUpdateAlarms(void)
 {
     // This is overdone?
 
-    int32_t alt = osdGetMetersToSelectedUnit(getEstimatedAltitude_cm()) / 100;
+    int32_t alt = osdGetMetersToSelectedUnit(getEstimatedAltitudeCm()) / 100;
 
     if (getRssiPercent() < osdConfig()->rssi_alarm) {
         SET_BLINK(OSD_RSSI_VALUE);
@@ -1239,9 +1239,9 @@ static void osdUpdateStats(void)
         stats.min_rssi = value;
     }
 
-    int32_t altitude_cm = getEstimatedAltitude_cm();
-    if (stats.max_altitude < altitude_cm) {
-        stats.max_altitude = altitude_cm;
+    int32_t altitudeCm = getEstimatedAltitudeCm();
+    if (stats.max_altitude < altitudeCm) {
+        stats.max_altitude = altitudeCm;
     }
 
 #ifdef USE_GPS
@@ -1275,7 +1275,7 @@ static void osdGetBlackboxStatusString(char * buff)
 
 #ifdef USE_FLASHFS
     case BLACKBOX_DEVICE_FLASH:
-        storageDeviceIsWorking = flashfsIsReady();
+        storageDeviceIsWorking = flashfsIsSupported();
         if (storageDeviceIsWorking) {
             const flashGeometry_t *geometry = flashfsGetGeometry();
             storageTotal = geometry->totalSize / 1024;

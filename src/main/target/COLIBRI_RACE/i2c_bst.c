@@ -808,23 +808,23 @@ static void bstMasterWrite32(uint32_t data)
 
 static int32_t lat = 0;
 static int32_t lon = 0;
-static uint16_t alt_m = 0;
+static uint16_t altM = 0;
 static uint8_t numOfSat = 0;
 #endif
 
 #ifdef USE_GPS
 bool writeGpsPositionPrameToBST(void)
 {
-    if ((lat != gpsSol.llh.lat) || (lon != gpsSol.llh.lon) || (alt != (gpsSol.llh.alt_cm / 100)) || (numOfSat != gpsSol.numSat)) {
+    if ((lat != gpsSol.llh.lat) || (lon != gpsSol.llh.lon) || (alt != (gpsSol.llh.altCm / 100)) || (numOfSat != gpsSol.numSat)) {
         lat = gpsSol.llh.lat;
         lon = gpsSol.llh.lon;
-        alt_m = gpsSol.llh.alt_cm / 100;
+        altM = gpsSol.llh.altCm / 100;
         numOfSat = gpsSol.numSat;
         uint16_t speed = (gpsSol.groundSpeed * 9 / 25);
         uint16_t gpsHeading = 0;
         uint16_t altitude = 0;
         gpsHeading = gpsSol.groundCourse * 10;
-        altitude = alt_m + 1000;  // To be verified: in m +1000m offset for neg. altitudes?
+        altitude = altM + 1000;  // To be verified: in m +1000m offset for neg. altitudes?
 
         bstMasterStartBuffer(PUBLIC_ADDRESS);
         bstMasterWrite8(GPS_POSITION_FRAME_ID);

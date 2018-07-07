@@ -41,3 +41,9 @@ stm32.mak
 .vagrant
 ubuntu*.log
 /.vs
+*.md
+src/main/io/rcdevice_osd.c
+src/main/io/rcdevice_osd.c
+src/main/io/rcdevice_osd.h
+src/main/io/displayport_rcdevice.c
+src/main/flight/gps_rescue.c

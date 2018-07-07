@@ -1000,7 +1000,7 @@ extern "C" {
         return simulationMahDrawn;
     }
 
-    int32_t getEstimatedAltitude() {
+    int32_t getEstimatedAltitudeCm() {
         return simulationAltitude;
     }
 

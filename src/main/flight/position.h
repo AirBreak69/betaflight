@@ -24,5 +24,5 @@
 
 bool isAltitudeOffset(void);
 void calculateEstimatedAltitude(timeUs_t currentTimeUs);
-int32_t getEstimatedAltitude_cm(void);
+int32_t getEstimatedAltitudeCm(void);
 int16_t getEstimatedVario(void);

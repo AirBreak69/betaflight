@@ -1891,8 +1891,7 @@ static void cliServoMix(char *cmdline)
         enum {SERVO = 0, INPUT, REVERSE, ARGS_COUNT};
         char *ptr = strchr(cmdline, ' ');
 
-        len = strlen(ptr);
-        if (len == 0) {
+        if (ptr == NULL) {
             cliPrintf("s");
             for (uint32_t inputSource = 0; inputSource < INPUT_SOURCE_COUNT; inputSource++)
                 cliPrintf("\ti%d", inputSource);
@@ -1900,8 +1899,9 @@ static void cliServoMix(char *cmdline)
 
             for (uint32_t servoIndex = 0; servoIndex < MAX_SUPPORTED_SERVOS; servoIndex++) {
                 cliPrintf("%d", servoIndex);
-                for (uint32_t inputSource = 0; inputSource < INPUT_SOURCE_COUNT; inputSource++)
+                for (uint32_t inputSource = 0; inputSource < INPUT_SOURCE_COUNT; inputSource++) {
                     cliPrintf("\t%s  ", (servoParams(servoIndex)->reversedSources & (1 << inputSource)) ? "r" : "n");
+                }
                 cliPrintLinefeed();
             }
             return;
@@ -1922,12 +1922,15 @@ static void cliServoMix(char *cmdline)
         if (args[SERVO] >= 0 && args[SERVO] < MAX_SUPPORTED_SERVOS
                 && args[INPUT] >= 0 && args[INPUT] < INPUT_SOURCE_COUNT
                 && (*ptr == 'r' || *ptr == 'n')) {
-            if (*ptr == 'r')
+            if (*ptr == 'r') {
                 servoParamsMutable(args[SERVO])->reversedSources |= 1 << args[INPUT];
-            else
+            } else {
                 servoParamsMutable(args[SERVO])->reversedSources &= ~(1 << args[INPUT]);
-        } else
+            }
+        } else {
             cliShowParseError();
+            return;
+        }
 
         cliServoMix("reverse");
     } else {
@@ -2056,6 +2059,10 @@ static void cliFlashInfo(char *cmdline)
 static void cliFlashErase(char *cmdline)
 {
     UNUSED(cmdline);
+
+    if (!flashfsIsSupported()) {
+        return;
+    }
 
 #ifndef MINIMAL_CLI
     uint32_t i = 0;
@@ -2451,7 +2458,7 @@ static void cliFeature(char *cmdline)
 static void printBeeper(uint8_t dumpMask, const uint32_t offFlags, const uint32_t offFlagsDefault, const char *name)
 {
     const uint8_t beeperCount = beeperTableEntryCount();
-    for (int32_t i = 0; i < beeperCount - 2; i++) {
+    for (int32_t i = 0; i < beeperCount - 1; i++) {
         const char *formatOff = "%s -%s";
         const char *formatOn = "%s %s";
         const uint32_t beeperModeMask = beeperModeMaskForTableIndex(i);
@@ -3662,20 +3669,24 @@ static void cliRcSmoothing(char *cmdline)
     if (rxConfig()->rc_smoothing_type == RC_SMOOTHING_TYPE_FILTER) {
         cliPrintLine("FILTER");
         uint16_t avgRxFrameMs = rcSmoothingGetValue(RC_SMOOTHING_VALUE_AVERAGE_FRAME);
-        cliPrint("# Detected RX frame rate: ");
-        if (avgRxFrameMs == 0) {
-            cliPrintLine("NO SIGNAL");
-        } else {
-            cliPrintLinef("%d.%dms", avgRxFrameMs / 1000, avgRxFrameMs % 1000);
+        if (rcSmoothingAutoCalculate()) {
+            cliPrint("# Detected RX frame rate: ");
+            if (avgRxFrameMs == 0) {
+                cliPrintLine("NO SIGNAL");
+            } else {
+                cliPrintLinef("%d.%dms", avgRxFrameMs / 1000, avgRxFrameMs % 1000);
+            }
         }
-        cliPrintLinef("# Auto input cutoff: %dhz", rcSmoothingGetValue(RC_SMOOTHING_VALUE_INPUT_AUTO));
+        cliPrint("# Input filter type: ");
+        cliPrintLinef(lookupTables[TABLE_RC_SMOOTHING_INPUT_TYPE].values[rxConfig()->rc_smoothing_input_type]);
         cliPrintf("# Active input cutoff: %dhz ", rcSmoothingGetValue(RC_SMOOTHING_VALUE_INPUT_ACTIVE));
         if (rxConfig()->rc_smoothing_input_cutoff == 0) {
             cliPrintLine("(auto)");
         } else {
             cliPrintLine("(manual)");
         }
-        cliPrintLinef("# Auto derivative cutoff: %dhz", rcSmoothingGetValue(RC_SMOOTHING_VALUE_DERIVATIVE_AUTO));
+        cliPrint("# Derivative filter type: ");
+        cliPrintLinef(lookupTables[TABLE_RC_SMOOTHING_DERIVATIVE_TYPE].values[rxConfig()->rc_smoothing_derivative_type]);
         cliPrintf("# Active derivative cutoff: %dhz (", rcSmoothingGetValue(RC_SMOOTHING_VALUE_DERIVATIVE_ACTIVE));
         if (rxConfig()->rc_smoothing_derivative_type == RC_SMOOTHING_DERIVATIVE_OFF) {
             cliPrintLine("off)");

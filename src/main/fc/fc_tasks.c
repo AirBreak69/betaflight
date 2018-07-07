@@ -177,7 +177,7 @@ static void taskUpdateRxMain(timeUs_t currentTimeUs)
     }
 
     static timeUs_t lastRxTimeUs;
-    currentRxRefreshRate = constrain(currentTimeUs - lastRxTimeUs, 1000, 20000);
+    currentRxRefreshRate = constrain(currentTimeUs - lastRxTimeUs, 1000, 30000);
     lastRxTimeUs = currentTimeUs;
     isRXDataNew = true;
 
@@ -459,7 +459,7 @@ cfTask_t cfTasks[TASK_COUNT] = {
         .taskName = "RX",
         .checkFunc = rxUpdateCheck,
         .taskFunc = taskUpdateRxMain,
-        .desiredPeriod = TASK_PERIOD_HZ(50),        // If event-based scheduling doesn't work, fallback to periodic scheduling
+        .desiredPeriod = TASK_PERIOD_HZ(33),        // If event-based scheduling doesn't work, fallback to periodic scheduling
         .staticPriority = TASK_PRIORITY_HIGH,
     },
 
@@ -591,7 +591,7 @@ cfTask_t cfTasks[TASK_COUNT] = {
     [TASK_RCDEVICE] = {
         .taskName = "RCDEVICE",
         .taskFunc = rcdeviceUpdate,
-        .desiredPeriod = TASK_PERIOD_HZ(10),        // 10 Hz, 100ms
+        .desiredPeriod = TASK_PERIOD_HZ(20),
         .staticPriority = TASK_PRIORITY_MEDIUM,
     },
 #endif

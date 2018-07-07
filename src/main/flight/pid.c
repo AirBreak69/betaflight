@@ -102,7 +102,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .pid = {
             [PID_ROLL] =  { 46, 45, 25 },
             [PID_PITCH] = { 50, 50, 27 },
-            [PID_YAW] =   { 65, 45, 20 },
+            [PID_YAW] =   { 65, 45, 0 },
             [PID_ALT] =   { 50, 0, 0 },
             [PID_POS] =   { 15, 0, 0 },     // POSHOLD_P * 100, POSHOLD_I * 100,
             [PID_POSR] =  { 34, 14, 53 },   // POSHOLD_RATE_P * 10, POSHOLD_RATE_I * 100, POSHOLD_RATE_D * 1000,
@@ -320,6 +320,22 @@ void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis, uint
                     break;
                 case RC_SMOOTHING_DERIVATIVE_BIQUAD:
                     biquadFilterInitLPF(&setpointDerivativeBiquad[axis], filterCutoff, targetPidLooptime);
+                    break;
+            }
+        }
+    }
+}
+
+void pidUpdateSetpointDerivativeLpf(uint16_t filterCutoff)
+{
+    if ((filterCutoff > 0) && (rcSmoothingFilterType != RC_SMOOTHING_DERIVATIVE_OFF)) {
+        for (int axis = FD_ROLL; axis <= FD_PITCH; axis++) {
+            switch (rcSmoothingFilterType) {
+                case RC_SMOOTHING_DERIVATIVE_PT1:
+                    pt1FilterUpdateCutoff(&setpointDerivativePt1[axis], pt1FilterGain(filterCutoff, dT));
+                    break;
+                case RC_SMOOTHING_DERIVATIVE_BIQUAD:
+                    biquadFilterUpdateLPF(&setpointDerivativeBiquad[axis], filterCutoff, targetPidLooptime);
                     break;
             }
         }
@@ -921,7 +937,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile, const rollAndPitchT
                         pidSetpointDelta = pt1FilterApply(&setpointDerivativePt1[axis], pidSetpointDelta);
                         break;
                     case RC_SMOOTHING_DERIVATIVE_BIQUAD:
-                        pidSetpointDelta = biquadFilterApply(&setpointDerivativeBiquad[axis], pidSetpointDelta);
+                        pidSetpointDelta = biquadFilterApplyDF1(&setpointDerivativeBiquad[axis], pidSetpointDelta);
                         break;
                 }
                 if (axis == rcSmoothingDebugAxis) {

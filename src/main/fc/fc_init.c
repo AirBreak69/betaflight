@@ -111,9 +111,7 @@
 
 #include "io/beeper.h"
 #include "io/displayport_max7456.h"
-#include "io/displayport_rcdevice.h"
 #include "io/displayport_srxl.h"
-#include "io/displayport_crsf.h"
 #include "io/serial.h"
 #include "io/flashfs.h"
 #include "io/gps.h"
@@ -353,7 +351,6 @@ void init(void)
         idlePulse = flight3DConfig()->neutral3d;
     }
     if (motorConfig()->dev.motorPwmProtocol == PWM_TYPE_BRUSHED) {
-        featureClear(FEATURE_3D);
         idlePulse = 0; // brushed motors
     }
     /* Motors needs to be initialized soon as posible because hardware initialization
@@ -602,10 +599,6 @@ void init(void)
 #if defined(USE_CMS) && defined(USE_SPEKTRUM_CMS_TELEMETRY) && defined(USE_TELEMETRY_SRXL)
     // Register the srxl Textgen telemetry sensor as a displayport device
     cmsDisplayPortRegister(displayPortSrxlInit());
-#endif
-
-#if defined(USE_CMS) && defined(USE_CRSF_CMS_TELEMETRY) && defined(USE_TELEMETRY)
-    cmsDisplayPortRegister(displayPortCrsfInit());
 #endif
 
 #ifdef USE_GPS

@@ -968,7 +968,7 @@ static void writeGPSFrame(timeUs_t currentTimeUs)
     blackboxWriteUnsignedVB(gpsSol.numSat);
     blackboxWriteSignedVB(gpsSol.llh.lat - gpsHistory.GPS_home[LAT]);
     blackboxWriteSignedVB(gpsSol.llh.lon - gpsHistory.GPS_home[LON]);
-    blackboxWriteUnsignedVB(gpsSol.llh.alt);
+    blackboxWriteSignedVB(gpsSol.llh.altCm);
     blackboxWriteUnsignedVB(gpsSol.groundSpeed);
     blackboxWriteUnsignedVB(gpsSol.groundCourse);
 
@@ -1333,6 +1333,7 @@ static bool blackboxWriteSysinfo(void)
                                                                             rxConfig()->rc_smoothing_derivative_type);
         BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_active_cutoffs", "%d, %d", rcSmoothingGetValue(RC_SMOOTHING_VALUE_INPUT_ACTIVE),
                                                                             rcSmoothingGetValue(RC_SMOOTHING_VALUE_DERIVATIVE_ACTIVE));
+        BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_rx_average", "%d",         rcSmoothingGetValue(RC_SMOOTHING_VALUE_AVERAGE_FRAME));
 #endif // USE_RC_SMOOTHING_FILTER
 
 

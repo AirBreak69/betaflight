@@ -183,7 +183,7 @@ static void sendAccel(void)
 
 static void sendThrottleOrBatterySizeAsRpm(void)
 {
-    int16_t data;
+    int16_t data = 0;
 #if defined(USE_ESC_SENSOR)
     escSensorData_t *escData = getEscSensorData(ESC_SENSOR_COMBINED);
     if (escData) {
@@ -207,7 +207,7 @@ static void sendThrottleOrBatterySizeAsRpm(void)
 
 static void sendTemperature1(void)
 {
-    int16_t data;
+    int16_t data = 0;
 #if defined(USE_ESC_SENSOR)
     escSensorData_t *escData = getEscSensorData(ESC_SENSOR_COMBINED);
     if (escData) {
@@ -269,14 +269,14 @@ static void sendLatLong(int32_t coord[2])
 #if defined(USE_GPS)
 static void sendGpsAltitude(void)
 {
-    int32_t altitude_cm = gpsSol.llh.alt_cm;
+    int32_t altitudeCm = gpsSol.llh.altCm;
 
     // Send real GPS altitude only if it's reliable (there's a GPS fix)
     if (!STATE(GPS_FIX)) {
-        altitude_cm = 0;
+        altitudeCm = 0;
     }
-    frSkyHubWriteFrame(ID_GPS_ALTIDUTE_BP, altitude_cm / 100); // meters: integer part, eg. 123 from 123.45m
-    frSkyHubWriteFrame(ID_GPS_ALTIDUTE_AP, altitude_cm % 100); // meters: fractional part, eg. 45 from 123.45m
+    frSkyHubWriteFrame(ID_GPS_ALTIDUTE_BP, altitudeCm / 100); // meters: integer part, eg. 123 from 123.45m
+    frSkyHubWriteFrame(ID_GPS_ALTIDUTE_AP, altitudeCm % 100); // meters: fractional part, eg. 45 from 123.45m
 }
 
 static void sendSatalliteSignalQualityAsTemperature2(uint8_t cycleNum)
@@ -536,22 +536,22 @@ void processFrSkyHubTelemetry(timeUs_t currentTimeUs)
     }
 
 #if defined(USE_BARO) || defined(USE_RANGEFINDER)
-    if (sensors(SENSOR_BARO | SENSOR_RANGEFINDER)) {
+    if (sensors(SENSOR_BARO | SENSOR_RANGEFINDER) | sensors(SENSOR_GPS)) {
         // Sent every 125ms
         sendVario();
 
         // Sent every 500ms
         if ((cycleNum % 4) == 0) {
-            int32_t altitude_cm = getEstimatedAltitude_cm();
+            int32_t altitudeCm = getEstimatedAltitudeCm();
 
             /* Allow 5s to boot correctly othervise send zero to prevent OpenTX
              * sensor lost notifications after warm boot. */
             if (frSkyHubLastCycleTime < DELAY_FOR_BARO_INITIALISATION_US) {
-                altitude_cm = 0;
+                altitudeCm = 0;
             }
 
-            frSkyHubWriteFrame(ID_ALTITUDE_BP, altitude_cm / 100); // meters: integer part, eg. 123 from 123.45m
-            frSkyHubWriteFrame(ID_ALTITUDE_AP, altitude_cm % 100); // meters: fractional part, eg. 45 from 123.45m
+            frSkyHubWriteFrame(ID_ALTITUDE_BP, altitudeCm / 100); // meters: integer part, eg. 123 from 123.45m
+            frSkyHubWriteFrame(ID_ALTITUDE_AP, altitudeCm % 100); // meters: fractional part, eg. 45 from 123.45m
         }
     }
 #endif

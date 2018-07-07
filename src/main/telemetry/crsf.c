@@ -40,6 +40,8 @@
 #include "common/streambuf.h"
 #include "common/utils.h"
 
+#include "cms/cms.h"
+
 #include "drivers/nvic.h"
 
 #include "fc/config.h"
@@ -180,7 +182,7 @@ void crsfFrameGps(sbuf_t *dst)
     sbufWriteU16BigEndian(dst, (gpsSol.groundSpeed * 36 + 5) / 10); // gpsSol.groundSpeed is in 0.1m/s
     sbufWriteU16BigEndian(dst, gpsSol.groundCourse * 10); // gpsSol.groundCourse is degrees * 10
     //Send real GPS altitude only if it's reliable (there's a GPS fix)
-    const uint16_t altitude = (STATE(GPS_FIX) ? (uint16_t)constrain(gpsSol.llh.alt_cm / 100 + 1000, 0, UINT16_MAX) : 1000);
+    const uint16_t altitude = (STATE(GPS_FIX) ? (uint16_t)constrain(gpsSol.llh.altCm / 100 + 1000, 0, UINT16_MAX) : 1000);
     sbufWriteU16BigEndian(dst, altitude);
     sbufWriteU8(dst, gpsSol.numSat);
 }
@@ -429,6 +431,10 @@ void initCrsfTelemetry(void)
     deviceInfoReplyPending = false;
 #if defined(USE_MSP_OVER_TELEMETRY)
     mspReplyPending = false;
+#endif
+
+#if defined(USE_CMS) && defined(USE_CRSF_CMS_TELEMETRY)
+    cmsDisplayPortRegister(displayPortCrsfInit());
 #endif
 
     int index = 0;

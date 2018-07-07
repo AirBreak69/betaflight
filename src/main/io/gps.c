@@ -283,7 +283,6 @@ void gpsInit(void)
 
     serialPortConfig_t *gpsPortConfig = findSerialPortConfig(FUNCTION_GPS);
     if (!gpsPortConfig) {
-        featureClear(FEATURE_GPS);
         return;
     }
 
@@ -305,7 +304,6 @@ void gpsInit(void)
     // no callback - buffer will be consumed in gpsUpdate()
     gpsPort = openSerialPort(gpsPortConfig->identifier, FUNCTION_GPS, NULL, NULL, baudRates[gpsInitData[gpsData.baudrateIndex].baudrateIndex], mode, SERIAL_NOT_INVERTED);
     if (!gpsPort) {
-        featureClear(FEATURE_GPS);
         return;
     }
 
@@ -532,7 +530,9 @@ void gpsUpdate(timeUs_t currentTimeUs)
         updateGpsIndicator(currentTimeUs);
     }
 #if defined(USE_GPS_RESCUE)
+    if (gpsRescueIsConfigured()) {
     updateGPSRescueState();
+    }
 #endif
 }
 
@@ -673,7 +673,7 @@ typedef struct gpsDataNmea_s {
     int32_t latitude;
     int32_t longitude;
     uint8_t numSat;
-    int32_t altitude;
+    int32_t altitudeCm;
     uint16_t speed;
     uint16_t hdop;
     uint16_t ground_course;
@@ -744,7 +744,7 @@ static bool gpsNewFrameNMEA(char c)
                             gps_Msg.hdop = grab_fields(string, 1) * 100;          // hdop
                             break;
                         case 9:
-                            gps_Msg.altitude = grab_fields(string, 1) * 10;     // altitude in centimeters. Note: NMEA delivers altitude with 1 or 3 decimals. It's safer to cut at 0.1m and multiply by 10
+                            gps_Msg.altitudeCm = grab_fields(string, 1) * 10;     // altitude in centimeters. Note: NMEA delivers altitude with 1 or 3 decimals. It's safer to cut at 0.1m and multiply by 10
                             break;
                     }
                     break;
@@ -835,7 +835,7 @@ static bool gpsNewFrameNMEA(char c)
                             gpsSol.llh.lat = gps_Msg.latitude;
                             gpsSol.llh.lon = gps_Msg.longitude;
                             gpsSol.numSat = gps_Msg.numSat;
-                            gpsSol.llh.alt = gps_Msg.altitude;
+                            gpsSol.llh.altCm = gps_Msg.altitudeCm;
                             gpsSol.hdop = gps_Msg.hdop;
                         }
                         break;
@@ -890,7 +890,7 @@ typedef struct {
     int32_t longitude;
     int32_t latitude;
     int32_t altitude_ellipsoid;
-    int32_t altitude_msl;
+    int32_t altitudeMslMm;
     uint32_t horizontal_accuracy;
     uint32_t vertical_accuracy;
 } ubx_nav_posllh;
@@ -1059,7 +1059,7 @@ static bool UBLOX_parse_gps(void)
         //i2c_dataset.time                = _buffer.posllh.time;
         gpsSol.llh.lon = _buffer.posllh.longitude;
         gpsSol.llh.lat = _buffer.posllh.latitude;
-        gpsSol.llh.alt = _buffer.posllh.altitude_msl / 10;  //alt in cm
+        gpsSol.llh.altCm = _buffer.posllh.altitudeMslMm / 10;  //alt in cm
         if (next_fix) {
             ENABLE_STATE(GPS_FIX);
         } else {
