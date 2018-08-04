@@ -212,10 +212,12 @@ static void checkForThrottleErrorResetState(uint16_t rxRefreshRate)
 
     const int16_t rcCommandSpeed = rcCommand[THROTTLE] - rcCommandThrottlePrevious[index];
 
-    if (ABS(rcCommandSpeed) > throttleVelocityThreshold) {
-        pidSetItermAccelerator(CONVERT_PARAMETER_TO_FLOAT(currentPidProfile->itermAcceleratorGain));
-    } else {
-        pidSetItermAccelerator(1.0f);
+    if (currentPidProfile->antiGravityMode == ANTI_GRAVITY_STEP) {
+        if (ABS(rcCommandSpeed) > throttleVelocityThreshold) {
+            pidSetItermAccelerator(CONVERT_PARAMETER_TO_FLOAT(currentPidProfile->itermAcceleratorGain));
+        } else {
+            pidSetItermAccelerator(1.0f);
+        }
     }
 }
 
@@ -536,7 +538,7 @@ FAST_CODE void processRcCommand(void)
 {
     uint8_t updatedChannel;
 
-    if (isRXDataNew && isAntiGravityModeActive()) {
+    if (isRXDataNew && pidAntiGravityEnabled()) {
         checkForThrottleErrorResetState(currentRxRefreshRate);
     }
 
@@ -753,5 +755,9 @@ int rcSmoothingGetValue(int whichValue)
         default:
             return 0;
     }
+}
+
+bool rcSmoothingInitializationComplete(void) {
+    return (rxConfig()->rc_smoothing_type != RC_SMOOTHING_TYPE_FILTER) || rcSmoothingData.filterInitialized;
 }
 #endif // USE_RC_SMOOTHING_FILTER
